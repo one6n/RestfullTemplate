@@ -10,21 +10,24 @@ using RestfullTemplate.Models;
 
 namespace RestfullTemplate.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/todoitems")]
     [ApiController]
     public class TodoItemsController : ControllerBase
     {
+        private readonly ILogger<TodoItemsController> _logger;
         private readonly TodoContext _context;
 
-        public TodoItemsController(TodoContext context)
+        public TodoItemsController(TodoContext context, ILogger<TodoItemsController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         // GET: api/TodoItems
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TodoItem>>> GetTodoItems()
         {
+            _logger.Log(LogLevel.Information, $"method={nameof(GetTodoItems)}");
             return await _context.TodoItems.ToListAsync();
         }
 
@@ -32,6 +35,7 @@ namespace RestfullTemplate.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<TodoItem>> GetTodoItem(long id)
         {
+            _logger.Log(LogLevel.Information, $"method={nameof(GetTodoItem)}, id={id}");
             var todoItem = await _context.TodoItems.FindAsync(id);
 
             if (todoItem == null)
@@ -47,6 +51,7 @@ namespace RestfullTemplate.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutTodoItem(long id, TodoItem todoItem)
         {
+            _logger.Log(LogLevel.Information, $"method={nameof(PutTodoItem)}, id={id}, todoItem={todoItem}");
             if (id != todoItem.Id)
             {
                 return BadRequest();
@@ -78,16 +83,20 @@ namespace RestfullTemplate.Controllers
         [HttpPost]
         public async Task<ActionResult<TodoItem>> PostTodoItem(TodoItem todoItem)
         {
+            _logger.Log(LogLevel.Information, $"method={nameof(PostTodoItem)}, todoItem={todoItem}");
+
             _context.TodoItems.Add(todoItem);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetTodoItem", new { id = todoItem.Id }, todoItem);
+            //return CreatedAtAction("GetTodoItem", new { id = todoItem.Id }, todoItem);
+            return CreatedAtAction(nameof(GetTodoItem), new { id = todoItem.Id }, todoItem);
         }
 
         // DELETE: api/TodoItems/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTodoItem(long id)
         {
+            _logger.Log(LogLevel.Information, $"method={nameof(DeleteTodoItem)}, id={id}");
             var todoItem = await _context.TodoItems.FindAsync(id);
             if (todoItem == null)
             {
